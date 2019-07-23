@@ -4,6 +4,7 @@ import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.model.persistence.UserRole;
 import com.code4ro.legalconsultation.repository.UserRepository;
+import com.code4ro.legalconsultation.service.api.MailApi;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
@@ -31,13 +32,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CsvMapper csvMapper = new CsvMapper();
-    private final MailService mailService;
+    private final MailApi mailApi;
 
     @Autowired
     public UserService(final UserRepository userRepository,
-                       final MailService mailService) {
+                       final MailApi mailApi) {
         this.userRepository = userRepository;
-        this.mailService = mailService;
+        this.mailApi = mailApi;
     }
 
     public User save(final User user) {
@@ -48,7 +49,7 @@ public class UserService {
         final boolean newUser = user.getId() == null;
         final User savedUser =  userRepository.save(user);
         if (newUser) {
-            mailService.sendRegisterMail(Collections.singletonList(user));
+            mailApi.sendRegisterMail(Collections.singletonList(user));
         }
         return savedUser;
     }
@@ -59,7 +60,7 @@ public class UserService {
                 .collect(Collectors.toList());
         final List<User> savedUsers = userRepository.saveAll(users);
         if (!newUsers.isEmpty()) {
-            mailService.sendRegisterMail(newUsers);
+            mailApi.sendRegisterMail(newUsers);
         }
         return savedUsers;
     }

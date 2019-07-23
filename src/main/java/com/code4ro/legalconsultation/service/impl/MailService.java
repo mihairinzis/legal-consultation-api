@@ -2,6 +2,7 @@ package com.code4ro.legalconsultation.service.impl;
 
 import com.code4ro.legalconsultation.common.exceptions.LegalValidationException;
 import com.code4ro.legalconsultation.model.persistence.User;
+import com.code4ro.legalconsultation.service.api.MailApi;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class MailService {
+public class MailService implements MailApi {
     private static final Logger LOG = LoggerFactory.getLogger(MailService.class);
 
     @Value("${app.signupurl}")
@@ -43,6 +44,7 @@ public class MailService {
         this.freemarkerConfig = freemarkerConfig;
     }
 
+    @Override
     public void sendRegisterMail(final List<User> users) throws LegalValidationException {
         final List<String> failedEmails = new ArrayList<>();
         users.forEach(user -> {
