@@ -5,6 +5,7 @@ import com.code4ro.legalconsultation.model.persistence.DocumentBreakdown;
 import com.code4ro.legalconsultation.repository.DocumentBreakdownRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -36,7 +37,7 @@ public class DocumentBreakdownService {
         return documentBreakdownRepository.save(new DocumentBreakdown());
     }
 
-    public DocumentBreakdown build(final Path documentPath){
+    public DocumentBreakdown build(final MultipartFile documentPath){
         return new DocumentBreakdown();
     }
 

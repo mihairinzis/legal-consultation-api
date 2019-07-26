@@ -2,19 +2,26 @@ package com.code4ro.legalconsultation.document.controller;
 
 import com.code4ro.legalconsultation.common.controller.AbstractControllerIntegrationTest;
 import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
-import com.code4ro.legalconsultation.model.persistence.*;
+import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.repository.DocumentBreakdownRepository;
 import com.code4ro.legalconsultation.repository.DocumentConsolidatedRepository;
 import com.code4ro.legalconsultation.repository.DocumentMetadataRepository;
-import com.code4ro.legalconsultation.service.api.DocumentService;
 import com.code4ro.legalconsultation.util.RandomObjectFiller;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.util.FileSystemUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,21 +30,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class DocumentControllerIntegrationTest extends AbstractControllerIntegrationTest {
 
+    @Value("${storage.filesystem.directory}")
+    private String customStoreDirPath;
+
     @Autowired
     private DocumentMetadataRepository documentMetadataRepository;
     @Autowired
     private DocumentBreakdownRepository documentBreakdownRepository;
     @Autowired
     private DocumentConsolidatedRepository documentConsolidatedRepository;
-    @Autowired
-    private DocumentService documentService;
 
     @Test
     @WithMockUser
     public void saveDocument() throws Exception{
-
+        final String randomDocumentContent = RandomStringUtils.randomAscii(10);
         final DocumentViewDto randomView = RandomObjectFiller.createAndFill(DocumentViewDto.class);
-        final MockMultipartFile randomFile = new MockMultipartFile("file", "file.doc", "text/plain", "text".getBytes());
+        final MockMultipartFile randomFile = new MockMultipartFile("file", "file.doc", "text/plain",
+                randomDocumentContent.getBytes());
 
         mvc.perform(MockMvcRequestBuilders.multipart("/api/document")
                 .file(randomFile)
@@ -52,6 +61,19 @@ public class DocumentControllerIntegrationTest extends AbstractControllerIntegra
         assertThat(documentMetadataRepository.count()).isEqualTo(1);
         assertThat(documentBreakdownRepository.count()).isEqualTo(1);
         assertThat(documentConsolidatedRepository.count()).isEqualTo(1);
+
+        final String soredFilePath = documentMetadataRepository.findAll().get(0).getFilePath();
+        assertThatDocumentIsStored(randomDocumentContent, soredFilePath);
+    }
+
+    private void assertThatDocumentIsStored(String expectedDocumentContent, String soredFilePath) throws IOException {
+        assertThat(soredFilePath).contains(customStoreDirPath);
+        final String fileContent = Files.readString(Paths.get(soredFilePath), StandardCharsets.US_ASCII);
+        assertThat(fileContent).isEqualTo(expectedDocumentContent);
+        // remove the store directory
+        final File storeDir = new File(customStoreDirPath);
+        FileSystemUtils.deleteRecursively(storeDir);
+        storeDir.deleteOnExit();
     }
 
     @Test

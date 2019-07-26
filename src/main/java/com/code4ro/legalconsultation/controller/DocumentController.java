@@ -6,9 +6,6 @@ import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import com.code4ro.legalconsultation.model.persistence.DocumentType;
 import com.code4ro.legalconsultation.service.api.DocumentService;
-import com.code4ro.legalconsultation.service.api.DocumentStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -26,12 +23,12 @@ import java.util.UUID;
 @RequestMapping(value = "/api/document")
 public class DocumentController {
 
-    private static Logger logger = LoggerFactory.getLogger(DocumentController.class);
-    @Autowired
-    private DocumentService documentService;
+    private final DocumentService documentService;
 
     @Autowired
-    private DocumentStorageService documentStorageService;
+    public DocumentController(DocumentService documentService) {
+        this.documentService = documentService;
+    }
 
     @GetMapping("")
     public ResponseEntity<List<DocumentMetadata>> getAllDocuments() {
