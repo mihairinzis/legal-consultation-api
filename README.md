@@ -54,6 +54,8 @@ TBD
 - mvn install
 - mvn spring-boot:run
 
+### [With docker-compose](etc/docker/README.md)
+
 ### Server dependencies
 
 #### Manual
@@ -64,13 +66,7 @@ TBD
 * set the root password
 * create a database called `legalconsultation`
 
-#### With docker-compose
-
-* install [Docker](https://docs.docker.com/install/)
-* install `docker-compose`
-  * with [pip](https://packaging.python.org/tutorials/installing-packages/): `pip install docker-compose`
-* go to `etc/docker`
-* run `docker-compose up`
+#### [With docker-compose](etc/docker/README.md)
 
 ##### Database
 

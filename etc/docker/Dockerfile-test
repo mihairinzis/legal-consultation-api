@@ -1,0 +1,9 @@
+FROM alpine/git as cloner
+WORKDIR /opt
+RUN git clone https://github.com/code4romania/legal-consultation-api
+
+FROM maven:3.6-jdk-11-slim as builder
+COPY --from=cloner /opt /opt
+WORKDIR /opt/legal-consultation-api
+RUN mvn dependency:go-offline -B
+# the container will run the build's 'defaultGoal' specified in pom.xml

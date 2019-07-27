@@ -1,0 +1,8 @@
+version: '3.7'
+
+services:
+  legal-api-test:
+    container_name: legal-api-test
+    build:
+      context: .
+      dockerfile: Dockerfile-test

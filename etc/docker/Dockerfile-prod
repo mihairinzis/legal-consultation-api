@@ -1,0 +1,15 @@
+FROM alpine/git as cloner
+WORKDIR /opt
+RUN git clone https://github.com/code4romania/legal-consultation-api
+
+FROM maven:3.6-jdk-11-slim as builder
+COPY --from=cloner /opt /opt
+WORKDIR /opt/legal-consultation-api
+RUN mvn dependency:go-offline -B
+RUN mvn package -Dmaven.test.skip=true
+
+FROM adoptopenjdk:11-jre-hotspot
+ARG JARNAME
+WORKDIR /opt
+COPY --from=builder /opt/legal-consultation-api/target/$JARNAME /opt/legal-consultation.jar
+CMD ["java", "-jar", "/opt/legal-consultation.jar", "--spring.profiles.active=production"]

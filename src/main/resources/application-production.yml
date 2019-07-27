@@ -1,0 +1,53 @@
+spring:
+  datasource:
+    url: jdbc:mysql://mysql:3306/legalconsultation?serverTimezone=Europe/Bucharest
+    username: root
+    password: root
+  jpa:
+    show-sql: true
+    hibernate.ddl-auto: update
+    generate-ddl: true
+    properties.hibernate.dialect.storage_engine: innodb
+    properties.hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+  multipart:
+    maxFileSize: 20MB
+    maxRequestSize: 30MB
+  data:
+    web:
+      pageable:
+        size-parameter: size
+        page-parameter: page
+        default-page-size: 20
+  mvc:
+    locale: ro
+  mail:
+    host: '127.0.0.1'
+    port: 1025
+    username: ""
+    password: ""
+    properties:
+      transport:
+        protocol: 'smtp'
+      mail:
+        smtp:
+          auth: false # set the access user/password and change this to true
+          starttls:
+            enable: true
+  cache:
+    cache-names: users
+app:
+  jwtSecret: ORy9HWgKoZPAs50ECKw0
+  jwtExpirationInMs: 1728000000   # two days expiration time, can be extended
+  signupurl: 'http://localhost:4200/authentication/sign-up'
+
+storage:
+  aws:
+    region: us-east-1
+    access:
+      key:
+        id: aws_access_id
+        secret: aws_access_secret
+    s3:
+      documentBucket: documents
+  filesystem:
+    directory: ~
