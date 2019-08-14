@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  legal-api:
+    container_name: legal-consultation-api
+    build:
+      context: ../../
+      dockerfile: etc/docker/Dockerfile-dev
+      args:
+        - JARNAME=legal-consultation-0.0.1-SNAPSHOT.jar
+    ports:
+      - '8080:8080'

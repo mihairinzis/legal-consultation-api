@@ -1,0 +1,6 @@
+FROM adoptopenjdk:11-jre-hotspot
+ARG JARNAME
+WORKDIR /opt
+COPY target/$JARNAME /opt/legal-consultation.jar
+EXPOSE 8080
+CMD ["java", "-jar", "/opt/legal-consultation.jar", "--spring.profiles.active=production"]

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/code4romania/legal-consultation-api.svg?branch=develop)](https://travis-ci.com/code4romania/legal-consultation-api)
+
 # Legal Consultation App
 
 [![GitHub contributors](https://img.shields.io/github/contributors/code4romania/legal-consultation-api.svg?style=for-the-badge)](https://github.com/code4romania/legal-consultation-api/graphs/contributors) [![GitHub last commit](https://img.shields.io/github/last-commit/code4romania/legal-consultation-api.svg?style=for-the-badge)](https://github.com/code4romania/legal-consultation-api/commits/master) [![License: MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-brightgreen.svg?style=for-the-badge)](https://opensource.org/licenses/MPL-2.0)

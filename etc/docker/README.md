@@ -3,19 +3,21 @@
 * install [Docker](https://docs.docker.com/install/)
 * install `docker-compose`
   * with [pip](https://packaging.python.org/tutorials/installing-packages/): `pip install docker-compose`
-* make sure you execute `docker-compose` from `etc/docker`
-
 # Docker-compose scenarios
 
+* start the server:
+``` shell
+docker-compose -f etc/docker/docker-compose-dev.yml up
+```
 * start the server dependencies only:
 ``` shell
-docker-compose up
+docker-compose -f etc/docker/docker-compose.yml up
 ```
-* start the server and all its dependencies using the `production` compose:
+* clone and start the server and all its dependencies::
 ``` shell
-docker-compose -f docker-compose-prod.yml up --build
+docker-compose -f etc/docker/docker-compose-prod.yml up --build
 ```
-* run all tests with the `test` compose:
+* clone and run all tests:
 ``` shell
-docker-compose -f docker-compose-test.yml up --build
+docker-compose -f etc/docker/docker-compose-test.yml up --build
 ```
