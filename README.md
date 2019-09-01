@@ -56,6 +56,8 @@ TBD
 
 ### [With docker-compose](etc/docker/README.md)
 
+### [To AWS](etc/ansible/README.md)
+
 ### Server dependencies
 
 #### Manual

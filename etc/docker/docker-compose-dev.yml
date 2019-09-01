@@ -3,6 +3,7 @@ version: '3.7'
 services:
   legal-api:
     container_name: legal-consultation-api
+    image: legal-api
     build:
       context: ../../
       dockerfile: etc/docker/Dockerfile-dev

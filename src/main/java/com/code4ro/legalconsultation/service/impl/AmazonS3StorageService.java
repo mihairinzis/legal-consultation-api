@@ -38,18 +38,22 @@ public class AmazonS3StorageService implements StorageApi {
 
     @PostConstruct
     private void initializeS3() {
-        final BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsKeyId, secretKey);
-        amazonS3 =  AmazonS3ClientBuilder
-                .standard()
-                .withRegion(Regions.fromName(region))
-                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-                .build();
-        if(amazonS3.doesBucketExist(documentBucket)) {
-            LOG.info("Bucket already created");
-            return;
+        try {
+            final BasicAWSCredentials awsCreds = new BasicAWSCredentials(awsKeyId, secretKey);
+            amazonS3 = AmazonS3ClientBuilder
+                    .standard()
+                    .withRegion(Regions.fromName(region))
+                    .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                    .build();
+            if (amazonS3.doesBucketExist(documentBucket)) {
+                LOG.info("Bucket already created");
+                return;
+            }
+            LOG.info("Creating aws s3 bucket {}.", documentBucket);
+            amazonS3.createBucket(documentBucket);
+        } catch (Exception e) {
+            LOG.error("Could not access aws s3", e);
         }
-        LOG.info("Creating aws s3 bucket {}.", documentBucket);
-        amazonS3.createBucket(documentBucket);
     }
 
     @Override

@@ -1,0 +1,304 @@
+---
+- name: Create an AWS ECS (cluster) for legal consultation
+  hosts: localhost
+  gather_facts: False
+  vars:
+    db_instance_type: db.t2.micro
+    client_image: "legal-client"
+    api_image: "legal-api"
+  tasks:
+    - name: Set variables
+      set_fact:
+        region: "{{ lookup('env','AWS_REGION') }}"
+        db_username: "{{ lookup('env','MYSQL_DB_USERNAME') }}"
+        db_password: "{{ lookup('env','MYSQL_DB_PASSWORD') }}"
+
+    - name: Get the current caller identity facts
+      aws_caller_facts:
+      register: caller
+
+    - name: Set the db username in parameter store
+      aws_ssm_parameter_store:
+        name: "/legalconsultation/MYSQL_DB_USERNAME"
+        description: "The username for the legalconsultation db."
+        value: "{{ db_username }}"
+
+    - name: Set the db password in parameter store
+      aws_ssm_parameter_store:
+        name: "/legalconsultation/MYSQL_DB_PASSWORD"
+        description: "The password for the legalconsultation db."
+        value: "{{ db_password }}"
+
+    - name: Create the storage bucket for the documents
+      s3_bucket:
+        name: "legal-consultation-documents"
+
+    - name: Create a Virtual Private Network
+      ec2_vpc_net:
+        name: "legal-consult-vpc"
+        cidr_block: "10.0.0.0/16"
+        region: "{{ region }}"
+        dns_hostnames: yes
+        dns_support: yes
+        state: present
+      register: vpc
+
+    - name: Create a public subnet within the VPC network
+      ec2_vpc_subnet:
+        vpc_id: "{{ vpc.vpc.id }}"
+        cidr: "10.0.0.0/24"
+        region: "{{ region }}"
+        az: "{{ region }}a"
+        map_public: yes
+        resource_tags:
+          Name: "legal-consult-public-subnet"
+        state: present
+      register: publicsub
+
+    - name: Create a private subnet a within the VPC network
+      ec2_vpc_subnet:
+        vpc_id: "{{ vpc.vpc.id }}"
+        cidr: "10.0.1.0/24"
+        region: "{{ region }}"
+        az: "{{ region }}a"
+        resource_tags:
+          Name: "legal-consult-private-subneta"
+        state: present
+      register: privatesuba
+
+    - name: Create a private subnet b within the VPC network
+      ec2_vpc_subnet:
+        vpc_id: "{{ vpc.vpc.id }}"
+        cidr: "10.0.2.0/24"
+        region: "{{ region }}"
+        az: "{{ region }}b"
+        resource_tags:
+          Name: "legal-consult-private-subnetb"
+        state: present
+      register: privatesubb
+
+    - name: Ensure that this vpc has a gateway to the internet (IGW)
+      ec2_vpc_igw:
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        resource_tags:
+          Name: "legal-consult-igw"
+        state: present
+      register: igw
+
+    - name: Create a route table for the vpc
+      ec2_vpc_route_table:
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ region }}"
+        subnets:
+          - "{{ publicsub.subnet.id }}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ igw.gateway_id  }}"
+        tags:
+          Name: "legal-consult-route"
+
+    - name: Create a security group for the web apps
+      ec2_group:
+        name: "legal-consultation-security-group"
+        description: Security Group for legal consultation
+        region: "{{ region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        rules:
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 8025
+            to_port: 8025
+            cidr_ip: 0.0.0.0/0
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+      register: sec_group
+
+    - name: Create a security group for the db
+      ec2_group:
+        name: "rds-legal-consultation-security-group"
+        description: Security Group for legal consultation database
+        region: "{{ region }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        rules:
+          - proto: tcp
+            from_port: 3306
+            to_port: 3306
+            cidr_ip: "{{ publicsub.subnet.cidr_block }}"
+      register: rds_sec_group
+
+    - name: Create a subnet group fro the db
+      rds_subnet_group:
+        name: "legal-consultation-subnet-group"
+        description: Rds subnet group
+        subnets:
+          - "{{ privatesuba.subnet.id }}"
+          - "{{ privatesubb.subnet.id }}"
+        state: present
+
+    - name: Create the db rds (will wait for completion)
+      rds:
+        command: create
+        instance_name: "legalconsult"
+        db_engine: MySQL
+        size: 10
+        instance_type: "{{ db_instance_type }}"
+        vpc_security_groups: "{{ rds_sec_group.group_id }}"
+        subnet: "legal-consultation-subnet-group"
+        db_name: "legalconsultation"
+        username: "{{ db_username }}"
+        password: "{{ db_password }}"
+        publicly_accessible: no
+        wait_timeout: 3600
+        wait: yes
+      register: rds
+
+    - name: Set the db endpoint in parameter store
+      aws_ssm_parameter_store:
+        name: "/legalconsultation/MYSQL_DB_URL"
+        description: "The url for the legalconsultation db."
+        value: "{{ rds.instance.endpoint }}"
+
+    - name: Create IAM role for executing tasks
+      iam_role:
+        name: "taskExecutionRole"
+        assume_role_policy_document: "{{ lookup('file','task_execution_role.policy.json') }}"
+        managed_policy:
+          - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      register: task_role
+
+    - name: Create and attach the parameter store policy to execution role
+      iam_policy:
+        iam_type: role
+        iam_name: "taskExecutionRole"
+        policy_name: "LegalConsultationAllowParams"
+        state: present
+        policy_json: "{{ lookup( 'template', 'allow_params_policy.json.j2', convert_data=False)}}"
+
+    - name: Create cloudwatch log group
+      cloudwatchlogs_log_group:
+        log_group_name: "legal-consultation-log-group"
+        state: present
+
+    - name: Login to ECR
+      shell: "$(aws ecr get-login --no-include-email --region {{ region }})"
+
+    - name: Create client ecr
+      ecs_ecr:
+        name: "{{ client_image }}"
+        region: "{{ region }}"
+      register: client_repo
+
+    - name: Tag and push client image
+      docker_image:
+        name: "{{ client_image }}"
+        repository: "{{ client_repo.repository.repositoryUri }}"
+        tag: "latest"
+        push: yes
+        source: local
+
+    - name: Create api ecr
+      ecs_ecr:
+        name: "{{ api_image }}"
+        region: "{{ region }}"
+      register: api_repo
+
+    - name: Tag and push api image
+      docker_image:
+        name: "{{ api_image }}"
+        repository: "{{ api_repo.repository.repositoryUri }}"
+        tag: "latest"
+        push: yes
+        source: local
+
+    - name: Create a task definition with all docker images
+      ecs_taskdefinition:
+        family: legal-consult-task
+        containers:
+        - name: "legal-client"
+          image: "{{ client_repo.repository.repositoryUri }}:latest"
+          portMappings:
+          - containerPort: 80
+            hostPort: 80
+          logConfiguration:
+            logDriver: awslogs
+            options:
+              awslogs-group: "legal-consultation-log-group"
+              awslogs-region: "{{ region }}"
+              awslogs-stream-prefix: "client"
+          cpu: 512
+          memory: 1024
+        - name: "legal-api"
+          image: "{{ api_repo.repository.repositoryUri }}:latest"
+          portMappings:
+          - containerPort: 8080
+            hostPort: 8080
+          logConfiguration:
+            logDriver: awslogs
+            options:
+              awslogs-group: "legal-consultation-log-group"
+              awslogs-region: "{{ region }}"
+              awslogs-stream-prefix: "api"
+          secrets:
+            - name: "MYSQL_DB_USERNAME"
+              valueFrom: "arn:aws:ssm:{{ region }}:{{ caller.account }}:parameter/legalconsultation/MYSQL_DB_USERNAME"
+            - name: "MYSQL_DB_PASSWORD"
+              valueFrom: "arn:aws:ssm:{{ region }}:{{ caller.account }}:parameter/legalconsultation/MYSQL_DB_PASSWORD"
+            - name: "MYSQL_DB_URL"
+              valueFrom: "arn:aws:ssm:{{ region }}:{{ caller.account }}:parameter/legalconsultation/MYSQL_DB_URL"
+          cpu: 512
+          memory: 1024
+        - name: "mailhog"
+          essential: true
+          image: "mailhog/mailhog:latest"
+          portMappings:
+          - containerPort: 8025
+            hostPort: 8025
+          - containerPort: 1025
+            hostPort: 1025
+        launch_type: FARGATE
+        cpu: 1024
+        memory: 2048
+        network_mode: awsvpc
+        execution_role_arn : "{{ task_role.arn }}"
+        state: present
+
+    - name: Create the ECS cluster
+      ecs_cluster:
+        name: "legal-consult-cluster"
+        state: present
+
+    - name: Create the ECS service
+      ecs_service:
+        name: "legal-consult-cluster-service"
+        cluster: "legal-consult-cluster"
+        region: "{{ region }}"
+        task_definition: "legal-consult-task"
+        desired_count: 1
+        launch_type: FARGATE
+        network_configuration:
+          assign_public_ip: yes
+          subnets:
+          - "{{ publicsub.subnet.id }}"
+          security_groups:
+          - "{{ sec_group.group_id }}"
+        state: present
+
+    - name: Created endpoints
+      debug:
+        msg:
+          - "The db endpoint is {{ rds.instance.endpoint }}"
+          - "The ecr repo for the api image is {{ api_repo.repository.repositoryUri }}"
+          - "The ecr repo for the client image is {{ client_repo.repository.repositoryUri }}"
