@@ -1,6 +1,6 @@
 package com.code4ro.legalconsultation.util;
 
-import com.code4ro.legalconsultation.model.persistence.*;
+import com.code4ro.legalconsultation.model.persistence.BaseEntity;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -8,7 +8,9 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.UUID;
 
 public class RandomObjectFiller {
 
@@ -26,15 +28,9 @@ public class RandomObjectFiller {
         }
     }
 
-    public static <T> T createAndFillWithBaseEntity(Class<? extends BaseEntity> clazz){
+    public static <T> T createAndFillWithBaseEntity(Class<? extends BaseEntity> clazz) {
         final T instance = (T) createAndFill(clazz);
         ((BaseEntity) instance).setId(UUID.randomUUID());
-        return instance;
-    }
-
-    public static <T> T createAndFillWithBaseEntityAndDifferentId(Class<? extends BaseEntity> clazz, UUID id){
-        final T instance = (T) createAndFill(clazz);
-        ((BaseEntity) instance).setId(generateDifferentUUID(id));
         return instance;
     }
 
@@ -79,30 +75,5 @@ public class RandomObjectFiller {
             return RandomStringUtils.randomAlphabetic(size.min(), size.max());
         }
         return RandomStringUtils.randomAlphabetic(10);
-    }
-
-    public static DocumentConsolidated buildRandomDocumentConsolidated(){
-        DocumentMetadata metadata = RandomObjectFiller.createAndFill(DocumentMetadata.class);
-
-        Article article1 = RandomObjectFiller.createAndFill(Article.class);
-        Article article2 = RandomObjectFiller.createAndFill(Article.class);
-        Chapter chapter1 = RandomObjectFiller.createAndFill(Chapter.class);
-        chapter1.setArticles(List.of(article1, article2));
-        article1.setArticleChapter(chapter1);
-        article2.setArticleChapter(chapter1);
-
-        DocumentBreakdown breakdown = RandomObjectFiller.createAndFill(DocumentBreakdown.class);
-        breakdown.setChapters(List.of(chapter1));
-        chapter1.setChapterDocument(breakdown);
-
-        return new DocumentConsolidated(metadata, breakdown);
-    }
-
-    public static UUID generateDifferentUUID(UUID uuid){
-        UUID generatedUUID;
-        do{
-            generatedUUID = UUID.randomUUID();
-        } while (Objects.equals(uuid, generatedUUID));
-        return generatedUUID;
     }
 }

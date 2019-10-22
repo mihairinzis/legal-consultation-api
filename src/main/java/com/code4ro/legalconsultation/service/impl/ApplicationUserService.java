@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ApplicationUserService {
@@ -27,6 +28,7 @@ public class ApplicationUserService {
         this.userService = userService;
     }
 
+    @Transactional
     @CachePut(cacheNames = "users")
     public ApplicationUser save(SignUpRequest signUpRequest) throws LegalValidationException {
         if (applicationUserRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -38,6 +40,13 @@ public class ApplicationUserService {
         final User user = getUser(signUpRequest.getEmail());
         applicationUser.setUser(user);
         return applicationUserRepository.save(applicationUser);
+    }
+
+    @Transactional(readOnly = true)
+    public ApplicationUser getByUsernameOrEmail(final String usernameOrEmail) {
+        return applicationUserRepository.findByUsernameOrEmail(usernameOrEmail).orElseThrow(() ->
+                new LegalValidationException("login.Bad.credentials", HttpStatus.UNAUTHORIZED)
+        );
     }
 
     private User getUser(final String email) {

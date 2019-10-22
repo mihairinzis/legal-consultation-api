@@ -1,6 +1,7 @@
 package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.service.impl.pdf.reader.BasicOARPdfReader;
+import com.code4ro.legalconsultation.util.PdfFileFactory;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -10,8 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 
@@ -22,17 +21,12 @@ public class BasicOARPdfReaderTest {
 
     @Test
     public void testOARPdfParsing() {
-        final List<String> filenames = Arrays.asList(
-                "codul_deontologic_al_oar_2011_pdf_1445359410.pdf",
-                "regulament_cadru_2018_pdf_1536138396.pdf",
-                "rof_2018_pdf_1536138173.pdf");
 
-        filenames.forEach(filename -> {
-            File file = new File(classLoader.getResource(String.format("pdf/%s", filename)).getFile());
+        PdfFileFactory.getAsFiles(getClass().getClassLoader()).forEach(file -> {
             try {
                 final PDDocument document = PDDocument.load(file);
                 final String content = pdfReader.getContent(document);
-                final String expectedContent = getExpectedContent(filename);
+                final String expectedContent = getExpectedContent(file.getName());
                 assertThat(expectedContent).isEqualToIgnoringWhitespace(content);
             } catch (IOException e) {
                 e.printStackTrace();

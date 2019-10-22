@@ -1,6 +1,6 @@
-package com.code4ro.legalconsultation.document.service;
+package com.code4ro.legalconsultation.service;
 
-import com.code4ro.legalconsultation.common.exceptions.ResourceNotFoundException;
+import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.service.impl.DocumentConsolidatedService;
 import com.code4ro.legalconsultation.service.impl.DocumentServiceImpl;
@@ -10,12 +10,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.UUID;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.Optional;
-import java.util.UUID;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DocumentServiceTest {
@@ -26,23 +25,24 @@ public class DocumentServiceTest {
     @InjectMocks
     private DocumentServiceImpl documentService;
 
-
     @Test
     public void getDocument(){
-        final String uuid = UUID.randomUUID().toString();
-        when(documentConsolidatedService.findOne(any(String.class))).thenReturn(Optional.of(new DocumentConsolidated()));
+        final UUID uuid = UUID.randomUUID();
+        when(documentConsolidatedService.getEntity(any(UUID.class))).thenReturn((new DocumentConsolidated()));
+
         documentService.fetchOne(uuid);
 
-        verify(documentConsolidatedService).findOne(uuid);
+        verify(documentConsolidatedService).getEntity(uuid);
     }
 
     @Test
     public void getDocumentConsolidated(){
-        final String uuid = UUID.randomUUID().toString();
-        when(documentConsolidatedService.findOne(any(String.class))).thenReturn(Optional.of(new DocumentConsolidated()));
+        final UUID uuid = UUID.randomUUID();
+        when(documentConsolidatedService.getOne(any(UUID.class))).thenReturn(new DocumentConsolidatedDto());
+
         documentService.fetchOneConsolidated(uuid);
 
-        verify(documentConsolidatedService).findOne(uuid);
+        verify(documentConsolidatedService).getOne(uuid);
     }
 
     @Test
@@ -52,9 +52,10 @@ public class DocumentServiceTest {
         verify(documentConsolidatedService).findAll();
     }
 
-    @Test(expected = ResourceNotFoundException.class)
+    @Test
     public void deleteDocument(){
-        final String uuid = UUID.randomUUID().toString();
+        final UUID uuid = UUID.randomUUID();
+
         documentService.deleteById(uuid);
 
         verify(documentConsolidatedService).deleteById(uuid);

@@ -1,11 +1,13 @@
 package com.code4ro.legalconsultation.service.impl;
 
-import com.code4ro.legalconsultation.common.exceptions.ResourceNotFoundException;
+import com.code4ro.legalconsultation.model.dto.DocumentConsolidatedDto;
 import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
-import com.code4ro.legalconsultation.model.persistence.DocumentBreakdown;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
+import com.code4ro.legalconsultation.model.persistence.DocumentNode;
+import com.code4ro.legalconsultation.service.api.DocumentNodeService;
 import com.code4ro.legalconsultation.service.api.DocumentService;
+import com.code4ro.legalconsultation.service.api.PDFService;
 import com.code4ro.legalconsultation.service.api.StorageApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,21 +26,25 @@ public class DocumentServiceImpl implements DocumentService {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
     private final DocumentConsolidatedService documentConsolidatedService;
-    private final DocumentBreakdownService documentBreakdownService;
     private final DocumentMetadataService documentMetadataService;
+    private final PDFService pdfService;
+    private final DocumentNodeService documentNodeService;
     private final StorageApi storageApi;
 
     @Autowired
     public DocumentServiceImpl(final DocumentConsolidatedService documentConsolidatedService,
-                               final DocumentBreakdownService documentBreakdownService,
                                final DocumentMetadataService documentMetadataService,
+                               final PDFService pdfService,
+                               final DocumentNodeService documentNodeService,
                                final StorageApi storageApi) {
         this.documentConsolidatedService = documentConsolidatedService;
-        this.documentBreakdownService = documentBreakdownService;
         this.documentMetadataService = documentMetadataService;
+        this.pdfService = pdfService;
+        this.documentNodeService = documentNodeService;
         this.storageApi = storageApi;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<DocumentMetadata> fetchAll() {
         return documentConsolidatedService.findAll()
@@ -46,20 +53,19 @@ public class DocumentServiceImpl implements DocumentService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     @Override
-    public Optional<DocumentMetadata> fetchOne(final String id)
-            throws ResourceNotFoundException{
-        return Optional.ofNullable(documentConsolidatedService.findOne(id)
-                .map(DocumentConsolidated::getDocumentMetadata)
-                .orElse(null));
+    public DocumentMetadata fetchOne(final UUID id) {
+        return documentConsolidatedService.getEntity(id).getDocumentMetadata();
     }
 
     @Transactional(readOnly = true)
     @Override
-    public Optional<DocumentConsolidated> fetchOneConsolidated(final String id) {
-        return documentConsolidatedService.findOne(id);
+    public DocumentConsolidatedDto fetchOneConsolidated(final UUID id) {
+        return documentConsolidatedService.getOne(id);
     }
 
+    @Transactional
     @Override
     public DocumentConsolidated create(final DocumentViewDto document, final MultipartFile file) {
 
@@ -67,40 +73,39 @@ public class DocumentServiceImpl implements DocumentService {
         final String filePath  = storeFile(file);
         metadata.setFilePath(filePath);
 
-        DocumentBreakdown breakdown = documentBreakdownService.build(file);
+        final String pdfContent = pdfService.readAsString(file);
+        final DocumentNode documentNode = documentNodeService.parse(pdfContent);
 
-        return documentConsolidatedService.saveOne(new DocumentConsolidated(metadata, breakdown));
+        return documentConsolidatedService.saveOne(new DocumentConsolidated(metadata, documentNode));
     }
 
+    @Transactional
     @Override
-    public Optional<DocumentConsolidated> update(final String id, final DocumentViewDto document,
+    public DocumentConsolidated update(final UUID id,
+                                                 final DocumentViewDto document,
                                                  final MultipartFile file) {
-        Optional<DocumentConsolidated> consolidated = documentConsolidatedService.findOne(id);
+        final DocumentConsolidated consolidated = documentConsolidatedService.getEntity(id);
 
-        if(!consolidated.isPresent())
-            return Optional.empty();
-
-        DocumentConsolidated documentConsolidated = consolidated.get();
+        // TODO delete current file from storage and the document node
 
         //update the metadata
         DocumentMetadata metadata = documentMetadataService.build(document);
         final String filePath  = storeFile(file);
         metadata.setFilePath(filePath);
-        metadata.setId(documentConsolidated.getDocumentMetadata().getId());
+        metadata.setId(consolidated.getDocumentMetadata().getId());
 
-        //update the breakdown
-        DocumentBreakdown breakdown = documentBreakdownService.build(file);
+        final String pdfContent = pdfService.readAsString(file);
+        final DocumentNode documentNode = documentNodeService.parse(pdfContent);
 
-        documentConsolidated.setDocumentMetadata(metadata);
-        documentConsolidated.setDocumentBreakdown(breakdown);
-        return Optional.of(documentConsolidatedService.saveOne(documentConsolidated));
+        consolidated.setDocumentMetadata(metadata);
+        consolidated.setDocumentNode(documentNode);
+        return documentConsolidatedService.saveOne(consolidated);
     }
 
-    @Override
     @Transactional
-    public void deleteById(final String id) throws ResourceNotFoundException {
-        DocumentConsolidated consolidated = documentConsolidatedService.findOne(id)
-                .orElseThrow(ResourceNotFoundException::new);
+    @Override
+    public void deleteById(final UUID id) throws EntityNotFoundException {
+        documentConsolidatedService.getEntity(id);
         documentConsolidatedService.deleteById(id);
     }
 
