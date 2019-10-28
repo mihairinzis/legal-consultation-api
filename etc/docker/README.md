@@ -5,19 +5,32 @@
   * with [pip](https://packaging.python.org/tutorials/installing-packages/): `pip install docker-compose`
 # Docker-compose scenarios
 
-* start the server:
+* create and run the docker image for the server (copies the local version):
 ``` shell
 docker-compose -f etc/docker/docker-compose-dev.yml up
 ```
-* start the server dependencies only:
+* create and run docker images for all server dependencies (mysql, mailhog):
 ``` shell
 docker-compose -f etc/docker/docker-compose.yml up
 ```
-* clone and start the server and all its dependencies::
+* create and run docker images for the server (clones the latest version) and all its dependencies:
 ``` shell
 docker-compose -f etc/docker/docker-compose-prod.yml up --build
 ```
-* clone and run all tests:
+# Docker-compose services
+
+
+## Database
+
+* to connect to the dockerized server with the `mysql` client run: `docker-compose exec mysql mysql -u root -p`
+
+* in order to remove the volumes (eg. the database volume)  associated with a compose file run:
+
 ``` shell
-docker-compose -f etc/docker/docker-compose-test.yml up --build
+docker-compose -f etc/docker/docker-compose.yml down -v
 ```
+
+## Mailhog
+
+* you can use [Mailhog](https://hub.docker.com/u/mailhog) to test email sending/receiving:
+  * to check all sent emails from the server go to `http://localhost:8025`.

@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.code4ro</groupId>
-	<artifactId>legal-consultation</artifactId>
+	<artifactId>expert-consultation</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>legal-consultation</name>
-	<description>Legal consultation API</description>
+	<name>expert-consultation</name>
+	<description>Expert consultation API</description>
 
 	<properties>
 		<java.version>11</java.version>

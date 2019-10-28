@@ -1,8 +1,8 @@
-# Legal Consultation App
+# Expert Consultation App
 
-[![GitHub contributors](https://img.shields.io/github/contributors/code4romania/legal-consultation-api.svg?style=for-the-badge)](https://github.com/code4romania/legal-consultation-api/graphs/contributors) [![GitHub last commit](https://img.shields.io/github/last-commit/code4romania/legal-consultation-api.svg?style=for-the-badge)](https://github.com/code4romania/legal-consultation-api/commits/master) [![License: MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-brightgreen.svg?style=for-the-badge)](https://opensource.org/licenses/MPL-2.0) [![Travis (.org)](https://img.shields.io/travis/code4romania/legal-consultation-api?style=for-the-badge)](https://travis-ci.com/code4romania/legal-consultation-api)
+[![GitHub contributors](https://img.shields.io/github/contributors/code4romania/legal-consultation-api.svg?style=for-the-badge)](https://github.com/code4romania/legal-consultation-api/graphs/contributors) [![GitHub last commit](https://img.shields.io/github/last-commit/code4romania/legal-consultation-api.svg?style=for-the-badge)](https://github.com/code4romania/legal-consultation-api/commits/master) [![License: MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-brightgreen.svg?style=for-the-badge)](https://opensource.org/licenses/MPL-2.0) [![Travis (.org)](https://img.shields.io/travis/code4romania/expert-consultation-api?style=for-the-badge)](https://travis-ci.com/code4romania/expert-consultation-api)
 
-API for Legal Consultation, a project designed to ease the process of public consultation with experts in Romania.
+API for Expert Consultation, a project designed to ease the process of public consultation with experts in Romania.
 
 [See the project live](https://www.figma.com/proto/7VLlmWKJOjS3YXkOFjMRi0/Legal-Consultation?node-id=0%3A1&scaling=min-zoom)
 
@@ -46,7 +46,7 @@ TBD
 
 ## Repos and projects
 
-- [Legal Consultation Client](https://github.com/code4romania/legal-consultation-client)
+- [Expert Consultation Client](https://github.com/code4romania/expert-consultation-client)
 
 ## Deployment
 
@@ -67,15 +67,6 @@ TBD
 * create a database called `legalconsultation`
 
 #### [With docker-compose](etc/docker/README.md)
-
-##### Database
-
-* to connect to the dockerized server with the `mysql` client run: `docker-compose exec db mysql -u root -p`
-
-##### Mailhog
-
-* you can use [Mailhog](https://hub.docker.com/u/mailhog) to test email sending/receiving:
-  * to check all sent emails from the server go to `http://localhost:8025`.
 
 ## Feedback
 
