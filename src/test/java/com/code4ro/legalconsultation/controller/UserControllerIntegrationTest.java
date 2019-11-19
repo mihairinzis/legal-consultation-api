@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import javax.mail.internet.MimeMessage;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -27,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class UserControllerIntegrationTest extends AbstractControllerIntegrationTest {
+
+    private static final String USER_AS_STRING = "john,doe,john@email.com,42345,district,org";
 
     @Autowired
     private UserRepository userRepository;
@@ -50,6 +53,33 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.role").value(userDto.getRole().toString()))
                 .andExpect(status().isOk());
+
+        assertThat(userRepository.count()).isEqualTo(1);
+    }
+
+    @Test
+    @WithMockUser
+    public void saveUserEmailException() throws Exception {
+        final UserDto userDto = RandomObjectFiller.createAndFill(UserDto.class);
+        userDto.setId(null);
+
+        mvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userDto))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.firstName").value(userDto.getFirstName()))
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.role").value(userDto.getRole().toString()))
+                .andExpect(status().isOk());
+
+
+        mvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(userDto))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.i18nFieldErrors.email.i18nErrorKey")
+                        .value("user.save.duplicatedEmail"));
 
         assertThat(userRepository.count()).isEqualTo(1);
     }
@@ -143,5 +173,26 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
                 .andExpect(jsonPath("$[0].district").value("district"))
                 .andExpect(jsonPath("$[0].organisation").value("org"))
                 .andExpect(jsonPath("$[0].role").value(UserRole.CONTRIBUTOR.toString()));
+    }
+
+    @Test
+    @WithMockUser
+    public void extractUserFromCopy() throws Exception {
+
+        final List<String> users = Collections.singletonList(USER_AS_STRING);
+
+        mvc.perform(post("/api/users/extract-from-copy")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(users))
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].firstName").value("john"))
+                .andExpect(jsonPath("$[0].lastName").value("doe"))
+                .andExpect(jsonPath("$[0].email").value("john@email.com"))
+                .andExpect(jsonPath("$[0].phoneNumber").value("42345"))
+                .andExpect(jsonPath("$[0].district").value("district"))
+                .andExpect(jsonPath("$[0].organisation").value("org"))
+                .andExpect(jsonPath("$[0].role").value(UserRole.CONTRIBUTOR.toString()))
+                .andExpect(status().isOk());
     }
 }

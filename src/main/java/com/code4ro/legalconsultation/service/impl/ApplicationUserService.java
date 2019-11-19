@@ -11,6 +11,9 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 public class ApplicationUserService {
@@ -27,6 +30,7 @@ public class ApplicationUserService {
         this.userService = userService;
     }
 
+    @Transactional
     @CachePut(cacheNames = "users")
     public ApplicationUser save(SignUpRequest signUpRequest) throws LegalValidationException {
         if (applicationUserRepository.existsByUsername(signUpRequest.getUsername())) {
@@ -40,16 +44,21 @@ public class ApplicationUserService {
         return applicationUserRepository.save(applicationUser);
     }
 
+    @Transactional(readOnly = true)
+    public ApplicationUser getByUsernameOrEmail(final String usernameOrEmail) {
+        return applicationUserRepository.findByUsernameOrEmail(usernameOrEmail).orElseThrow(() ->
+                new LegalValidationException("login.Bad.credentials", HttpStatus.UNAUTHORIZED)
+        );
+    }
+
     private User getUser(final String email) {
-        final User user = userService.findByEmail(email);
-        if (user == null) {
-            return userService.saveEntity(new User(email, UserRole.CONTRIBUTOR));
-        }
-        if (applicationUserRepository.findById(user.getId()).isPresent()) {
-            // there's already an application user linked to the user with the provided email
+        final Optional<User> byEmail = userService.findByEmail(email);
+
+        //if user is persisted but with a different email address throw exception
+        byEmail.flatMap(user -> applicationUserRepository.findById(user.getId())).ifPresent(e -> {
             throw new LegalValidationException("register.Duplicate.email", HttpStatus.CONFLICT);
-        }
-        return user;
+        });
+        return userService.saveEntity(new User(email, UserRole.CONTRIBUTOR));
     }
 
 }

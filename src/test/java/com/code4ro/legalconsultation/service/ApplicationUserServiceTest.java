@@ -52,7 +52,7 @@ public class ApplicationUserServiceTest {
     @Test(expected = LegalValidationException.class)
     public void saveDuplicateEmail() {
         final User user = RandomObjectFiller.createAndFill(User.class);
-        when(userService.findByEmail(signUpRequest.getEmail())).thenReturn(user);
+        when(userService.findByEmail(signUpRequest.getEmail())).thenReturn(Optional.of(user) );
         when(applicationUserRepository.findById(user.getId())).thenReturn(Optional.of(new ApplicationUser()));
 
         applicationUserService.save(signUpRequest);

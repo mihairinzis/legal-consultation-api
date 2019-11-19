@@ -1,22 +1,28 @@
 package com.code4ro.legalconsultation.service.impl;
 
 import com.code4ro.legalconsultation.model.dto.BaseEntityDto;
+import com.code4ro.legalconsultation.model.dto.DocumentNodeDto;
 import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
 import com.code4ro.legalconsultation.model.dto.UserDto;
 import com.code4ro.legalconsultation.model.persistence.BaseEntity;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
+import com.code4ro.legalconsultation.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.service.api.MapperService;
+import org.modelmapper.AbstractConverter;
 import org.modelmapper.ModelMapper;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class MapperServiceImpl implements MapperService {
+public class MapperServiceImpl implements MapperService, ApplicationListener<ContextRefreshedEvent> {
     private final ModelMapper modelMapper;
 
     public MapperServiceImpl() {
@@ -40,6 +46,14 @@ public class MapperServiceImpl implements MapperService {
                 .includeBase(BaseEntityDto.class, BaseEntity.class);
         modelMapper.createTypeMap(DocumentMetadata.class, DocumentViewDto.class);
         modelMapper.createTypeMap(DocumentViewDto.class, DocumentMetadata.class);
+        modelMapper.createTypeMap(DocumentNode.class, DocumentNodeDto.class);
+    }
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        final Collection<AbstractConverter> converters =
+                event.getApplicationContext().getBeansOfType(AbstractConverter.class).values();
+        converters.forEach(modelMapper::addConverter);
     }
 
     @Override

@@ -18,13 +18,13 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
-  legal-api-prod:
-    container_name: legal-api-prod
+  expert-api-prod:
+    container_name: expert-api-prod
     build:
       context: .
       dockerfile: Dockerfile-prod
       args:
-        - JARNAME=legal-consultation-0.0.1-SNAPSHOT.jar
+        - JARNAME=expert-consultation-0.0.1-SNAPSHOT.jar
     ports:
       - '8080:8080'
     depends_on:

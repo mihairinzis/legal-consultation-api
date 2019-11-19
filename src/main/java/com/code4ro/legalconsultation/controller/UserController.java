@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -78,6 +77,17 @@ public class UserController {
     @PostMapping(value = "/extract", consumes = "multipart/form-data")
     public List<UserDto> extractFromCsv(
             @ApiParam("CSV file containing user information that is being uploaded") @RequestParam("csvFile") final MultipartFile file) {
-        return userService.extract(file);
+        return userService.extractFromCsv(file);
+    }
+
+    @ApiOperation(value = "Extract user information from a copy/paste",
+            response = List.class,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/extract-from-copy")
+    public List<UserDto> extractFromCopyPaste(
+            @ApiParam("List of Strings with all the user details separated by comma")
+            @RequestBody final List<String>  usersList){
+        return userService.extractFromCopyPaste(usersList);
     }
 }

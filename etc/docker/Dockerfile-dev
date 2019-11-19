@@ -1,6 +1,12 @@
+FROM maven:3.6-jdk-11-slim as builder
+COPY . /opt/expert-consultation-api
+WORKDIR /opt/expert-consultation-api
+RUN mvn dependency:go-offline -B
+RUN mvn package -Dmaven.test.skip=true
+
 FROM adoptopenjdk:11-jre-hotspot
 ARG JARNAME
 WORKDIR /opt
-COPY target/$JARNAME /opt/legal-consultation.jar
+COPY --from=builder /opt/expert-consultation-api/target/$JARNAME /opt/expert-consultation.jar
 EXPOSE 8080
-CMD ["java", "-jar", "/opt/legal-consultation.jar", "--spring.profiles.active=production"]
+CMD ["java", "-jar", "/opt/expert-consultation.jar"]

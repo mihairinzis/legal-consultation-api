@@ -1,8 +1,11 @@
-package com.code4ro.legalconsultation.document.service;
+package com.code4ro.legalconsultation.service;
 
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
+import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
 import com.code4ro.legalconsultation.repository.DocumentConsolidatedRepository;
+import com.code4ro.legalconsultation.service.api.MapperService;
 import com.code4ro.legalconsultation.service.impl.DocumentConsolidatedService;
+import com.code4ro.legalconsultation.util.DocumentNodeFactory;
 import com.code4ro.legalconsultation.util.RandomObjectFiller;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,16 +25,20 @@ public class DocumentConsolidatedServiceTest {
 
     @Mock
     private DocumentConsolidatedRepository documentConsolidatedRepository;
+    @Mock
+    private MapperService mapperService;
 
     @InjectMocks
     private DocumentConsolidatedService documentConsolidatedService;
+
+    private final DocumentNodeFactory documentNodeFactory = new DocumentNodeFactory();
 
     @Test
     public void getDocument(){
         final UUID uuid = UUID.randomUUID();
         when(documentConsolidatedRepository.findById(any(UUID.class))).thenReturn(Optional.of(new DocumentConsolidated()));
 
-        documentConsolidatedService.findOne(uuid.toString());
+        documentConsolidatedService.getOne(uuid);
         verify(documentConsolidatedRepository).findById(uuid);
     }
 
@@ -42,8 +49,10 @@ public class DocumentConsolidatedServiceTest {
     }
 
     @Test
-    public void saveDocument(){
-        DocumentConsolidated documentConsolidated = RandomObjectFiller.buildRandomDocumentConsolidated();
+    public void saveDocument() {
+        final DocumentMetadata documentMetadata = RandomObjectFiller.createAndFill(DocumentMetadata.class);
+        DocumentConsolidated documentConsolidated =
+                new DocumentConsolidated(documentMetadata, documentNodeFactory.create());
         documentConsolidatedService.saveOne(documentConsolidated);
 
         verify(documentConsolidatedRepository).save(documentConsolidated);
@@ -51,9 +60,9 @@ public class DocumentConsolidatedServiceTest {
 
     @Test
     public void deleteDocument(){
-        final String id = UUID.randomUUID().toString();
+        final UUID id = UUID.randomUUID();
         documentConsolidatedService.deleteById(id);
 
-        verify(documentConsolidatedRepository).deleteById(UUID.fromString(id));
+        verify(documentConsolidatedRepository).deleteById(id);
     }
 }

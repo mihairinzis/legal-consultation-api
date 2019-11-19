@@ -1,6 +1,6 @@
 package com.code4ro.legalconsultation.util;
 
-import com.code4ro.legalconsultation.model.persistence.*;
+import com.code4ro.legalconsultation.model.persistence.BaseEntity;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.RandomUtils;
 
@@ -10,7 +10,6 @@ import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 public class RandomObjectFiller {
@@ -27,6 +26,12 @@ public class RandomObjectFiller {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static <T> T createAndFillWithBaseEntity(Class<? extends BaseEntity> clazz) {
+        final T instance = (T) createAndFill(clazz);
+        ((BaseEntity) instance).setId(UUID.randomUUID());
+        return instance;
     }
 
     private static Object getRandomValueForField(Field field) {
@@ -70,20 +75,5 @@ public class RandomObjectFiller {
             return RandomStringUtils.randomAlphabetic(size.min(), size.max());
         }
         return RandomStringUtils.randomAlphabetic(10);
-    }
-
-    public static DocumentConsolidated buildRandomDocumentConsolidated(){
-        DocumentMetadata metadata = RandomObjectFiller.createAndFill(DocumentMetadata.class);
-
-        Article article1 = RandomObjectFiller.createAndFill(Article.class);
-        Article article2 = RandomObjectFiller.createAndFill(Article.class);
-        Chapter chapter1 = RandomObjectFiller.createAndFill(Chapter.class);
-        chapter1.setArticles(List.of(article1, article2));
-        DocumentBreakdown breakdown = new DocumentBreakdown();
-        breakdown.setChapters(List.of(chapter1));
-
-        DocumentConsolidated consolidated = new DocumentConsolidated(metadata, breakdown);
-
-        return consolidated;
     }
 }

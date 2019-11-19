@@ -1,7 +1,5 @@
 package com.code4ro.legalconsultation.controller;
 
-import com.code4ro.legalconsultation.common.exceptions.ResourceNotFoundException;
-import com.code4ro.legalconsultation.model.dto.ApiResponse;
 import com.code4ro.legalconsultation.model.dto.DocumentViewDto;
 import com.code4ro.legalconsultation.model.persistence.DocumentConsolidated;
 import com.code4ro.legalconsultation.model.persistence.DocumentMetadata;
@@ -20,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -47,31 +44,21 @@ public class DocumentController {
             response = DocumentMetadata.class,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping("/{id}")
-    public ResponseEntity getDocumentById(@ApiParam("Id of the document object being requested") @PathVariable String id) {
-        Optional<DocumentMetadata> optDocument = documentService.fetchOne(id);
-
-        if(!optDocument.isPresent())
-            throw new ResourceNotFoundException();
-
-        return ResponseEntity.ok(optDocument.get());
+    public ResponseEntity getDocumentById(@ApiParam("Id of the document object being requested") @PathVariable UUID id) {
+        return ResponseEntity.ok(documentService.fetchOne(id));
     }
 
     @ApiOperation(value = "Return metadata and content for a single document in the platform based on id",
             response = DocumentConsolidated.class,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping("/{id}/consolidated")
-    public ResponseEntity getDocumentConsolidatedById(@ApiParam("Id of the document object being requested") @PathVariable String id){
-        Optional<DocumentConsolidated> consolidatedDocumentOpt = documentService.fetchOneConsolidated(id);
-
-        if(!consolidatedDocumentOpt.isPresent())
-            throw new ResourceNotFoundException();
-
-        return ResponseEntity.ok(consolidatedDocumentOpt.get());
+    public ResponseEntity getDocumentConsolidatedById(@ApiParam("Id of the document object being requested") @PathVariable UUID id){
+        return ResponseEntity.ok(documentService.fetchOneConsolidated(id));
     }
 
     @ApiOperation(value = "Delete metadata and contents for a single document in the platform based on id")
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteDocument(@ApiParam("Id of the document object being deleted") @PathVariable String id) {
+    public ResponseEntity deleteDocument(@ApiParam("Id of the document object being deleted") @PathVariable UUID id) {
         documentService.deleteById(id);
         return ResponseEntity.ok().build();
     }
@@ -100,7 +87,7 @@ public class DocumentController {
             response = UUID.class,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PutMapping("/{id}")
-    public ResponseEntity<UUID> modifyDocument(@ApiParam(value = "Id of the document being modified") @RequestParam String id,
+    public ResponseEntity<UUID> modifyDocument(@ApiParam(value = "Id of the document being modified") @RequestParam UUID id,
                                                @ApiParam(value = "Title of the modified document") @RequestParam("title") String documentTitle,
                                                @ApiParam(value = "The document number of the modified document") @RequestParam("number") BigInteger documentNumber,
                                                @ApiParam(value = "The organization that initiated the document") @RequestParam("documentInitializer") String initiator,
@@ -110,10 +97,8 @@ public class DocumentController {
                                                @ApiParam(value = "The file containing the modified document content") @RequestParam("file") MultipartFile documentFile) {
 
         DocumentViewDto documentViewDto = new DocumentViewDto(documentTitle, documentNumber, initiator, type, creationDate, receiveDate);
-        Optional<DocumentConsolidated> consolidated = documentService.update(id, documentViewDto, documentFile);
-        if(!consolidated.isPresent())
-            throw new ResourceNotFoundException();
+        DocumentConsolidated consolidated = documentService.update(id, documentViewDto, documentFile);
 
-        return ResponseEntity.ok(consolidated.get().getId());
+        return ResponseEntity.ok(consolidated.getId());
     }
 }

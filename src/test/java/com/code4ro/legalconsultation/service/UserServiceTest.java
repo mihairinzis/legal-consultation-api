@@ -36,6 +36,7 @@ public class UserServiceTest {
 
     private MapperService mapperService = new MapperServiceImpl();
     private UserService userService;
+    private static final String USER_AS_STRING = "john,doe,john@email.com,42345,district,org";
 
     @Before
     public void before() {
@@ -99,7 +100,7 @@ public class UserServiceTest {
         when(userRepository.findAllByEmailIn(Collections.singletonList("john@email.com")))
                 .thenReturn(Collections.singletonList(user));
 
-        final List<UserDto> results = userService.extract(file);
+        final List<UserDto> results = userService.extractFromCsv(file);
 
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).getId()).isEqualTo(user.getId());
@@ -116,7 +117,7 @@ public class UserServiceTest {
         when(file.getInputStream()).thenReturn(
                 new ByteArrayInputStream("john,doe,john@email.com,42345,district,org".getBytes()));
 
-        final List<UserDto> results = userService.extract(file);
+        final List<UserDto> results = userService.extractFromCsv(file);
 
         assertThat(results.size()).isEqualTo(1);
         assertThat(results.get(0).getId()).isNull();
@@ -125,6 +126,21 @@ public class UserServiceTest {
 
     @Test(expected = LegalValidationException.class)
     public void extractUsersInvalidFile() {
-        userService.extract(null);
+        userService.extractFromCsv(null);
+    }
+
+    @Test
+    public void extractUsersFromCopy() {
+        final List<String> usersList = Collections.singletonList(USER_AS_STRING);
+        final List<UserDto> results = userService.extractFromCopyPaste(usersList);
+
+        assertThat(results.size()).isEqualTo(1);
+        assertThat(results.get(0).getFirstName()).isEqualTo("john");
+        assertThat(results.get(0).getLastName()).isEqualTo("doe");
+        assertThat(results.get(0).getEmail()).isEqualTo("john@email.com");
+        assertThat(results.get(0).getPhoneNumber()).isEqualTo("42345");
+        assertThat(results.get(0).getDistrict()).isEqualTo("district");
+        assertThat(results.get(0).getOrganisation()).isEqualTo("org");
+        assertThat(results.get(0).getRole()).isEqualTo(UserRole.CONTRIBUTOR);
     }
 }

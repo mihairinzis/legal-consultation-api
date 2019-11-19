@@ -5,11 +5,13 @@ import com.code4ro.legalconsultation.model.dto.UserDto;
 import com.code4ro.legalconsultation.model.persistence.User;
 import com.code4ro.legalconsultation.model.persistence.UserRole;
 import com.code4ro.legalconsultation.repository.UserRepository;
-import com.code4ro.legalconsultation.service.api.MapperService;
 import com.code4ro.legalconsultation.service.api.MailApi;
+import com.code4ro.legalconsultation.service.api.MapperService;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +22,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
     private static final Logger LOG = LoggerFactory.getLogger(UserService.class);
+    private static final String COMMA_REGEX = ",";
 
     private final UserRepository userRepository;
     private final CsvMapper csvMapper = new CsvMapper();
@@ -82,7 +83,7 @@ public class UserService {
         return mapperService.mapPage(userPage, UserDto.class);
     }
 
-    public User findByEmail(final String email) {
+    public Optional<User> findByEmail(final String email) {
         return userRepository.findByEmail(email);
     }
 
@@ -90,11 +91,40 @@ public class UserService {
         userRepository.deleteById(UUID.fromString(id));
     }
 
-    public List<UserDto> extract(final MultipartFile csvFile) throws LegalValidationException {
+
+
+    private List<UserDto> read(InputStream stream) throws IOException {
+        final CsvSchema schema = CsvSchema.builder()
+                .addColumn("firstName")
+                .addColumn("lastName")
+                .addColumn("email")
+                .addColumn("phoneNumber")
+                .addColumn("district")
+                .addColumn("organisation")
+                .build();
+        final ObjectReader reader = csvMapper.readerFor(UserDto.class).with(schema);
+        return reader.<UserDto>readValues(stream).readAll();
+    }
+
+    public List<UserDto> extractFromCsv(final MultipartFile csvFile) throws LegalValidationException {
         try {
-            final List<User> users = read(csvFile.getInputStream());
+            return extractUsers(csvFile.getInputStream());
+        } catch (Exception e) {
+            LOG.error("Exception while parsing the csv file", e);
+            throw new LegalValidationException("user.Extract.csv.failed", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    public List<UserDto> extractFromCopyPaste(final List<String> usersList) {
+        final String concatenatedUsers = StringUtils.join(usersList, "\n");
+        return extractUsers(new ByteArrayInputStream(concatenatedUsers.getBytes()));
+    }
+
+    private List<UserDto> extractUsers(final InputStream usersInputStream) {
+        try {
+            final List<UserDto> users = read(usersInputStream);
             final List<String> userEmails = users.stream()
-                    .map(User::getEmail)
+                    .map(UserDto::getEmail)
                     .collect(Collectors.toList());
             final Map<String, User> alreadySaved = userRepository.findAllByEmailIn(userEmails).stream()
                     .collect(Collectors.toMap(User::getEmail, user -> user));
@@ -108,23 +138,11 @@ public class UserService {
                 }
             });
 
-            return mapperService.mapList(users, UserDto.class);
+            return users;
         } catch (Exception e) {
-            LOG.error("Exception while parsing the csv file", e);
-            throw new LegalValidationException("user.Extract.csv.failed", HttpStatus.BAD_REQUEST);
+            LOG.error("Exception while parsing the input stream", e);
+            throw new LegalValidationException("user.Extract.users.failed", HttpStatus.BAD_REQUEST);
         }
     }
 
-    private List<User> read(InputStream stream) throws IOException {
-        final CsvSchema schema = CsvSchema.builder()
-                .addColumn("firstName")
-                .addColumn("lastName")
-                .addColumn("email")
-                .addColumn("phoneNumber")
-                .addColumn("district")
-                .addColumn("organisation")
-                .build();
-        final ObjectReader reader = csvMapper.readerFor(User.class).with(schema);
-        return reader.<User>readValues(stream).readAll();
-    }
 }
