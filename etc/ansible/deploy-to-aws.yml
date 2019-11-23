@@ -5,7 +5,7 @@
   vars:
     db_instance_type: db.t2.micro
     client_image: "legal-client"
-    api_image: "legal-api"
+    api_image: "expert-consultation-api"
   tasks:
     - name: Set variables
       set_fact:

@@ -19,12 +19,16 @@ services:
       - "1025:1025"
       - "8025:8025"
   expert-api-prod:
-    container_name: expert-api-prod
+    container_name: expert-consultation-api
     build:
       context: .
       dockerfile: Dockerfile-prod
       args:
         - JARNAME=expert-consultation-0.0.1-SNAPSHOT.jar
+    environment:
+      - MYSQL_DB_URL=mysql
+      - MYSQL_DB_USERNAME=root
+      - MYSQL_DB_PASSWORD=root
     ports:
       - '8080:8080'
     depends_on:
