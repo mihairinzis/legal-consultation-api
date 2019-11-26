@@ -1,6 +1,6 @@
 # Expert Consultation App
 
-[![GitHub contributors](https://img.shields.io/github/contributors/code4romania/legal-consultation-api.svg)](https://github.com/code4romania/legal-consultation-api/graphs/contributors) [![GitHub last commit](https://img.shields.io/github/last-commit/code4romania/legal-consultation-api.svg)](https://github.com/code4romania/legal-consultation-api/commits/master) [![License: MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0) ![](https://github.com/code4romania/expert-consultation-api/workflows/Push%20to%20registry/badge.svg)
+[![GitHub contributors](https://img.shields.io/github/contributors/code4romania/legal-consultation-api.svg)](https://github.com/code4romania/legal-consultation-api/graphs/contributors) [![GitHub last commit](https://img.shields.io/github/last-commit/code4romania/legal-consultation-api.svg)](https://github.com/code4romania/legal-consultation-api/commits/master) [![License: MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0) ![](https://github.com/code4romania/expert-consultation-api/workflows/Build/badge.svg)
 
 API for Expert Consultation, a project designed to ease the process of public consultation with experts in Romania.
 
