@@ -17,6 +17,10 @@ docker-compose -f etc/docker/docker-compose-dev.yml up
 ``` shell
 docker-compose -f etc/docker/docker-compose-prod.yml up --build
 ```
+* create and run the docker image for the client on port 80:
+``` shell
+docker-compose -f etc/docker/docker-compose-frontend.yml up --build
+```
 # Docker-compose services
 
 

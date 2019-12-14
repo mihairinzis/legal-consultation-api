@@ -1,0 +1,8 @@
+version: '3.7'
+
+services:
+  legal-client:
+    container_name: expert-consultation-client
+    image: code4romania/expert-consultation-client
+    ports:
+      - '80:80'
