@@ -23,17 +23,29 @@ jobs:
     - name: Build with Maven
       run: mvn package
 
-    - name: Build the Docker image
+    - name: Beanstalk Deploy
       if: github.ref == 'refs/heads/develop'
-      run: |
-        docker build . \
-        --file etc/docker/Dockerfile-dev \
-        --tag ${{ secrets.ORGANIZATION }}/${{ secrets.REPO }}:latest
+      uses: einaregilsson/beanstalk-deploy@v10
+      with:
+        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        region: ${{ secrets.AWS_REGION }}
+        application_name: ExpertConsultationApi
+        environment_name: ExpertConsultationApi-staging
+        version_label: 0.0.1-SNAPSHOT
+        deployment_package: target/expert-consultation-0.0.1-SNAPSHOT.jar
 
-    - name: Login to docker registry
-      if: github.ref == 'refs/heads/develop'
-      run: docker login -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }}
+    # - name: Build the Docker image
+    #   if: github.ref == 'refs/heads/develop'
+    #   run: |
+    #     docker build . \
+    #     --file etc/docker/Dockerfile-dev \
+    #     --tag ${{ secrets.ORGANIZATION }}/${{ secrets.REPO }}:latest
 
-    - name: Push to docker registry
-      if: github.ref == 'refs/heads/develop'
-      run: docker push ${{ secrets.ORGANIZATION }}/${{ secrets.REPO }}:latest
+    # - name: Login to docker registry
+    #   if: github.ref == 'refs/heads/develop'
+    #   run: docker login -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }}
+
+    # - name: Push to docker registry
+    #   if: github.ref == 'refs/heads/develop'
+    #   run: docker push ${{ secrets.ORGANIZATION }}/${{ secrets.REPO }}:latest
