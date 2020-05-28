@@ -49,9 +49,9 @@ eb create ExpertConsultationApi-staging \
     --sample \
     --cname expert-consultation-api-staging \
     --database \
-    --database.engine mysql \
+    --database.engine postgres \
     --database.instance db.t2.micro \
-    --database.version 5.7 \
+    --database.version 12.2 \
     --database.size 5 \
     --database.password $DB_PWD \
     --database.username $DB_USER \
