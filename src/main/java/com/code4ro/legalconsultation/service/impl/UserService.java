@@ -109,7 +109,10 @@ public class UserService {
             return extractUsers(csvFile.getInputStream());
         } catch (Exception e) {
             log.error("Exception while parsing the csv file", e);
-            throw new LegalValidationException("user.Extract.csv.failed", HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("user.Extract.csv.failed")
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 
@@ -143,7 +146,10 @@ public class UserService {
             return users;
         } catch (Exception e) {
             log.error("Exception while parsing the input stream", e);
-            throw new LegalValidationException("user.Extract.users.failed", HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("user.Extract.users.failed")
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 

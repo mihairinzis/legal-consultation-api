@@ -71,7 +71,11 @@ public class MailService implements MailApi {
             }
         });
         if (!failedEmails.isEmpty()) {
-            throw new LegalValidationException("user.Email.send.failed", failedEmails, HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("user.Email.send.failed")
+                    .i8nArguments(failedEmails)
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 

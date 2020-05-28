@@ -118,7 +118,12 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDto setStatus(UUID commentId, CommentStatus status) {
         final Comment comment = commentRepository.findById(commentId).orElseThrow(EntityNotFoundException::new);
-        if (comment.getStatus() != null) throw new RuntimeException("The comment status is already set!");
+        if (comment.getStatus() != null) {
+            throw LegalValidationException.builder()
+                    .i18nKey("comment.Status.already.set")
+                    .httpStatus(HttpStatus.CONFLICT)
+                    .build();
+        }
         comment.setStatus(status);
         commentRepository.save(comment);
         return mapperService.map(comment);
@@ -128,7 +133,10 @@ public class CommentServiceImpl implements CommentService {
         final ApplicationUser owner = comment.getOwner();
         final ApplicationUser currentUser = currentUserService.getCurrentUser();
         if (currentUser.getUser().getRole() != UserRole.ADMIN && !Objects.equals(currentUser.getId(), owner.getId())) {
-            throw new LegalValidationException("comment.Unauthorized.user", HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("comment.Unauthorized.user")
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 }

@@ -71,7 +71,10 @@ public class AmazonS3StorageService implements StorageApi {
             amazonS3.putObject(putObjectRequest);
         } catch (Exception e) {
             log.error("Storing of document with name: {} failed.", uniqueDocumentName, e);
-            throw new LegalValidationException("storage.upload.failed", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw LegalValidationException.builder()
+                    .i18nKey("storage.upload.failed")
+                    .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         }
         return uniqueDocumentName;
     }
@@ -85,7 +88,10 @@ public class AmazonS3StorageService implements StorageApi {
                     .readAllBytes();
         } catch (Exception e) {
             log.error("Loading of document uri: {} failed.", documentURI, e);
-            throw new LegalValidationException("storage.load.failed", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw LegalValidationException.builder()
+                    .i18nKey("storage.load.failed")
+                    .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         }
     }
 
@@ -95,7 +101,10 @@ public class AmazonS3StorageService implements StorageApi {
             amazonS3.deleteObject(documentBucket, documentURI);
         } catch (Exception e) {
             log.error("Load File fail", e);
-            throw new LegalValidationException("storage.delete.failed", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw LegalValidationException.builder()
+                    .i18nKey("storage.delete.failed")
+                    .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         }
     }
 }

@@ -53,7 +53,10 @@ public class PDFServiceImpl implements PDFService {
             return pdfReader.getContent(doc);
         } catch (IOException e) {
             log.warn("Exception while parsing PDF file", e);
-            throw new LegalValidationException("document.parse.pdf.failed", HttpStatus.BAD_REQUEST);
+            throw LegalValidationException.builder()
+                    .i18nKey("document.parse.pdf.failed")
+                    .httpStatus(HttpStatus.BAD_REQUEST)
+                    .build();
         }
     }
 
@@ -64,9 +67,12 @@ public class PDFServiceImpl implements PDFService {
             if (pdfHandleRepository.existsByHashAndState(hash, state)) {
                 return pdfHandleRepository.findByHashAndState(hash, state);
             }
-            throw new LegalValidationException("document.pdf.already_exists",
-                    Collections.singletonList(pdfHandleRepository.findByHash(hash).getId().toString()),
-                    HttpStatus.CONFLICT);
+            final String handleId = pdfHandleRepository.findByHash(hash).getId().toString();
+            throw LegalValidationException.builder()
+                    .i18nKey("document.pdf.already_exists")
+                    .i8nArguments(Collections.singletonList(handleId))
+                    .httpStatus(HttpStatus.CONFLICT)
+                    .build();
         }
 
         final String uriString;
@@ -74,9 +80,11 @@ public class PDFServiceImpl implements PDFService {
             uriString = storageApi.storeFile(file);
         } catch (Exception e) {
             log.error("failed to save the pdf file", e);
-            throw new LegalValidationException("document.pdf.upload.failed",
-                    Collections.singletonList(e.toString()),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            throw LegalValidationException.builder()
+                    .i18nKey("document.pdf.upload.failed")
+                    .i8nArguments(Collections.singletonList(e.toString()))
+                    .httpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         }
 
         PdfHandle pdfHandle = new PdfHandle();

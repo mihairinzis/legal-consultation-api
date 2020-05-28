@@ -26,8 +26,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(LegalValidationException.class)
     protected ResponseEntity<Object> handleLegalValidationException(final LegalValidationException ex) {
-        final I18nError error = new I18nError(ex.getI18nKey(), ex.getI8nArguments());
-        return buildResponseEntity(ex.getHttpStatus(), Collections.singletonList(error), null, null);
+        final I18nError error = ex.getI18nKey() != null
+                ? new I18nError(ex.getI18nKey(), ex.getI8nArguments()) : null;
+        return buildResponseEntity(ex.getHttpStatus(), Collections.singletonList(error), ex.getI18nFieldErrors(), null);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

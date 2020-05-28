@@ -38,7 +38,7 @@ public class AuthControllerIntegrationTest extends AbstractControllerIntegration
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.i18nErrors[0].i18nErrorKey")
+                .andExpect(jsonPath("$.i18nFieldErrors.username.i18nErrorKey")
                         .value("register.Duplicate.username"))
                 .andExpect(status().isConflict());
 
@@ -49,7 +49,7 @@ public class AuthControllerIntegrationTest extends AbstractControllerIntegration
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.i18nErrors[0].i18nErrorKey")
+                .andExpect(jsonPath("$.i18nFieldErrors.email.i18nErrorKey")
                         .value("register.Duplicate.email"))
                 .andExpect(status().isConflict());
     }
