@@ -14,6 +14,7 @@ import com.code4ro.legalconsultation.repository.UserRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -30,6 +31,7 @@ public class AuthControllerIntegrationTest extends AbstractControllerIntegration
     private InvitationRepository invitationRepository;
 
     @Test
+    @Transactional
     public void signUp() throws Exception {
         final User user = userRepository.save(RandomObjectFiller.createAndFill(User.class));
         final Invitation invitation = RandomObjectFiller.createAndFill(Invitation.class);
@@ -72,6 +74,7 @@ public class AuthControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
+    @Transactional
     public void login() throws Exception {
         final User user = userRepository.save(RandomObjectFiller.createAndFill(User.class));
         final Invitation invitation = RandomObjectFiller.createAndFill(Invitation.class);

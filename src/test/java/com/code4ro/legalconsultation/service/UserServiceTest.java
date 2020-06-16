@@ -44,7 +44,6 @@ public class UserServiceTest {
     private InvitationService invitationService;
     private UserMapper mapperService = new UserMapperImpl();
 
-    @InjectMocks
     private UserService userService;
 
     @Before
@@ -64,16 +63,16 @@ public class UserServiceTest {
 
     @Test
     public void saveUsersAndSendRegistrationMail() {
-        final List<UserDto> userDtos = Arrays.asList(
-                RandomObjectFiller.createAndFill(UserDto.class), RandomObjectFiller.createAndFill(UserDto.class));
+        final UserDto userDto = new UserDto();
+        userDto.setEmail("email");
+        final User user = new User("email", UserRole.OWNER);
 
-        when(userRepository.saveAll(anyList())).thenReturn(Arrays.asList(
-                RandomObjectFiller.createAndFill(User.class), RandomObjectFiller.createAndFill(User.class)));
+        when(userRepository.saveAll(anyList())).thenReturn(Collections.singletonList(user));
         when(invitationService.create(any(User.class))).thenReturn(RandomObjectFiller.createAndFill(Invitation.class));
 
-        userService.saveAndSendRegistrationMail(userDtos);
+        userService.saveAndSendRegistrationMail(Collections.singletonList(userDto));
 
-        verify(invitationService, times(2)).create(any(User.class));
+        verify(invitationService).create(any(User.class));
         verify(mailService).sendRegisterMail(anyList());
         verify(userRepository).saveAll(anyList());
     }

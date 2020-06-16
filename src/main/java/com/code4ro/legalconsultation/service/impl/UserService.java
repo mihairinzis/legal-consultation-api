@@ -70,20 +70,28 @@ public class UserService {
     }
 
     public List<UserDto> saveAndSendRegistrationMail(final List<UserDto> userDtos) throws LegalValidationException {
-        final List<User> users = userDtos.stream()
+        final List<User> allUsers = userDtos.stream()
                 .map(mapperService::map)
                 .collect(Collectors.toList());
-        final List<User> savedUsers = userRepository.saveAll(users);
-        final List<Invitation> invitations = savedUsers.stream()
+
+        final List<String> newUserEmails = allUsers.stream()
                 .filter(User::isNew)
-                .map(invitationService::create)
+                .map(User::getEmail)
                 .collect(Collectors.toList());
 
+        final List<User> savedUsers = userRepository.saveAll(allUsers);
+
+        final List<Invitation> invitations = savedUsers.stream()
+                .filter(user -> newUserEmails.contains(user.getEmail()))
+                .map(invitationService::create)
+                .collect(Collectors.toList());
         if (!invitations.isEmpty()) {
             mailApi.sendRegisterMail(invitations);
         }
 
-        return savedUsers.stream().map(mapperService::map).collect(Collectors.toList());
+        return savedUsers.stream()
+                .map(mapperService::map)
+                .collect(Collectors.toList());
     }
 
     public UserDto getOne(final String id) {
@@ -118,7 +126,7 @@ public class UserService {
 
     public List<UserDto> extractFromCsv(final MultipartFile csvFile) throws LegalValidationException {
         try {
-            return extractUsers(csvFile.getInputStream());
+            return extractUsersFromInputStream(csvFile.getInputStream());
         } catch (Exception e) {
             log.error("Exception while parsing the csv file", e);
             throw LegalValidationException.builder()
@@ -130,14 +138,14 @@ public class UserService {
 
     public List<UserDto> extractFromCopyPaste(final List<String> usersList) {
         final String concatenatedUsers = StringUtils.join(usersList, "\n");
-        return extractUsers(new ByteArrayInputStream(concatenatedUsers.getBytes()));
+        return extractUsersFromInputStream(new ByteArrayInputStream(concatenatedUsers.getBytes()));
     }
 
     public List<User> findByIds(final Collection<UUID> ids) {
         return userRepository.findAllById(ids);
     }
 
-    private List<UserDto> extractUsers(final InputStream usersInputStream) {
+    public List<UserDto> extractUsersFromInputStream(final InputStream usersInputStream) {
         try {
             final List<UserDto> users = read(usersInputStream);
             final List<String> userEmails = users.stream()
