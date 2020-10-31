@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -44,6 +45,7 @@ public class DocumentCommentsController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @PutMapping("/{id}")
+    @PreAuthorize("@commentAuthorization.canChangeComment(#id)")
     public ResponseEntity<CommentDetailDto> update(@ApiParam(value = "The id of the node") @PathVariable final UUID nodeId,
                                                    @ApiParam(value = "The id of the comment") @PathVariable final UUID id,
                                                    @ApiParam("The DTO object to update") @RequestBody final CommentDto commentDto) {
@@ -54,7 +56,8 @@ public class DocumentCommentsController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@ApiParam(value = "The id of the comment") @PathVariable final UUID id) {
+    @PreAuthorize("@commentAuthorization.canChangeComment(#id)")
+    public ResponseEntity<Void> delete(@ApiParam(value = "The id of the application comment") @PathVariable final UUID id) {
         commentService.delete(id);
         return ResponseEntity.ok().build();
     }

@@ -1,12 +1,13 @@
 package com.code4ro.legalconsultation.core.exception.handler;
 
 import com.code4ro.legalconsultation.core.exception.ExceptionResponse;
-import com.code4ro.legalconsultation.i18n.model.I18nError;
 import com.code4ro.legalconsultation.core.exception.LegalValidationException;
+import com.code4ro.legalconsultation.i18n.model.I18nError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -52,6 +53,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleException(final Exception ex) {
         log.error("Unknown problem.", ex);
         return buildResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, null, null, ex.getLocalizedMessage());
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    protected ResponseEntity<Object> handleAccessDenied(final AccessDeniedException ex) {
+        final I18nError error = new I18nError("authorization.Access.denied", null);
+        return buildResponseEntity(HttpStatus.UNAUTHORIZED, Collections.singletonList(error), null, ex.getLocalizedMessage());
     }
 
     private ResponseEntity<Object> buildResponseEntity(final HttpStatus httpStatus,

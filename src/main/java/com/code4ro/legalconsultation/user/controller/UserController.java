@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +39,7 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping
+    @PreAuthorize("@authorization.isSuperUser()")
     public UserDto save(
             @ApiParam("The DTO object containing new user information") @RequestBody @Valid final UserDto userDto) {
         return userService.saveAndSendRegistrationMail(userDto);
@@ -48,6 +50,7 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping(value = "/bulk")
+    @PreAuthorize("@authorization.isSuperUser()")
     public List<UserDto> saveAll(
             @ApiParam("List of DTO objects containing new users information") @Valid @RequestBody
             final List<UserDto> userDtos) {
@@ -58,6 +61,7 @@ public class UserController {
             response = UserDto.class,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping(value = "/{id}")
+    @PreAuthorize("@authorization.isSuperUserOrMe(#id)")
     public UserDto getOne(
             @ApiParam("Id of the user object being requested") @PathVariable final String id) {
         return userService.getOne(id);
@@ -68,6 +72,7 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping
+    @PreAuthorize("@authorization.isSuperUser()")
     public PageDto<UserDto> findAll(@ApiParam("Page object information being requested") final Pageable pageable) {
         final Page<User> userPage = userService.findAll(pageable);
         Page<UserDto> usersDto = userPage.map(userMapper::map);
@@ -77,6 +82,7 @@ public class UserController {
     @ApiOperation(value = "Delete a user from the platform based on id",
             produces = MediaType.APPLICATION_JSON_VALUE)
     @DeleteMapping(value = "/{id}")
+    @PreAuthorize("@authorization.isSuperUser()")
     public void deleteById(@ApiParam("Id of the user object being deleted") @PathVariable final String id) {
         userService.deleteById(id);
     }
@@ -86,6 +92,7 @@ public class UserController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping(value = "/extract", consumes = "multipart/form-data")
+    @PreAuthorize("@authorization.isSuperUser()")
     public List<UserDto> extractFromCsv(
             @ApiParam("CSV file containing user information that is being uploaded") @RequestParam("file")
             final MultipartFile file) {
@@ -97,6 +104,7 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PostMapping(value = "/extract-from-copy")
+    @PreAuthorize("@authorization.isSuperUser()")
     public List<UserDto> extractFromCopyPaste(
             @ApiParam("List of Strings with all the user details separated by comma")
             @RequestBody final List<String> usersList) {
@@ -107,6 +115,7 @@ public class UserController {
             response = List.class,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping(value = "/search")
+    @PreAuthorize("@authorization.isSuperUser()")
     public List<UserDto> searchByTerm(@ApiParam("String of the input searching term")
                                       @RequestParam("searchTerm") final String searchTerm) {
         return userMapper.map(userService.searchByTerm(searchTerm));

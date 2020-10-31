@@ -13,6 +13,7 @@ import com.code4ro.legalconsultation.authentication.model.persistence.Applicatio
 import com.code4ro.legalconsultation.document.node.model.persistence.DocumentNode;
 import com.code4ro.legalconsultation.comment.repository.CommentRepository;
 import com.code4ro.legalconsultation.security.service.CurrentUserService;
+import com.code4ro.legalconsultation.user.model.persistence.UserRole;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -81,7 +82,7 @@ public class DocumentCommentsControllerIntegrationTest extends AbstractControlle
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void update() throws Exception {
         final DocumentConsolidated document = documentFactory.create();
@@ -108,7 +109,7 @@ public class DocumentCommentsControllerIntegrationTest extends AbstractControlle
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void deleteComment() throws Exception {
         final DocumentNode node = documentNodeFactory.save();
@@ -163,7 +164,7 @@ public class DocumentCommentsControllerIntegrationTest extends AbstractControlle
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void approve() throws Exception {
         final DocumentConsolidated document = documentFactory.create();
@@ -175,7 +176,7 @@ public class DocumentCommentsControllerIntegrationTest extends AbstractControlle
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void reject() throws Exception {
         final DocumentConsolidated document = documentFactory.create();

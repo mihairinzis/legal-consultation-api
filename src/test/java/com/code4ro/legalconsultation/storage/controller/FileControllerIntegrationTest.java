@@ -28,7 +28,7 @@ public class FileControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void saveFile() throws Exception {
         final MockMultipartFile randomFile = PdfFileFactory.getAsMultipart(getClass().getClassLoader());
@@ -44,7 +44,7 @@ public class FileControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void deleteFile() throws Exception {
         final MockMultipartFile randomFile = PdfFileFactory.getAsMultipart(getClass().getClassLoader());

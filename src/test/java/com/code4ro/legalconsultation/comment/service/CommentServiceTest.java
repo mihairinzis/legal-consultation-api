@@ -99,36 +99,13 @@ public class CommentServiceTest {
         assertThat(commentArgumentCaptor.getValue().getText()).isEqualTo(commentDto.getText());
     }
 
-    @Test(expected = LegalValidationException.class)
-    public void updateUnauthorizedUser() {
-        final UUID id = UUID.randomUUID();
-        final CommentDto commentDto = new CommentDto();
-        currentUser.getUser().setRole(UserRole.CONTRIBUTOR);
-        final Comment comment = commentFactory.createEntity();
-        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
-
-        commentService.update(UUID.randomUUID(), id, commentDto);
-    }
-
     @Test
     public void delete() {
         final UUID id = UUID.randomUUID();
-        final Comment comment = new Comment();
-        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
 
         commentService.delete(id);
 
-        verify(commentRepository).delete(comment);
-    }
-
-    @Test(expected = LegalValidationException.class)
-    public void deleteUnauthorizedUser() {
-        final UUID id = UUID.randomUUID();
-        currentUser.getUser().setRole(UserRole.CONTRIBUTOR);
-        final Comment comment = commentFactory.createEntity();
-        when(commentRepository.findById(id)).thenReturn(Optional.of(comment));
-
-        commentService.delete(id);
+        verify(commentRepository).deleteById(id);
     }
 
     @Test

@@ -52,7 +52,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void saveUser() throws Exception {
         final UserDto userDto = RandomObjectFiller.createAndFill(UserDto.class);
@@ -71,7 +71,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void saveUserEmailException() throws Exception {
         final UserDto userDto = RandomObjectFiller.createAndFill(UserDto.class);
@@ -99,7 +99,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void saveUsers() throws Exception {
         final List<User> users = Arrays.asList(
@@ -116,7 +116,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void getUser() throws Exception {
         final User user = userRepository.save(RandomObjectFiller.createAndFill(User.class));
@@ -128,7 +128,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void list() throws Exception {
         final List<User> users = Arrays.asList(
@@ -161,7 +161,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void deleteUser() throws Exception {
         final User user = userRepository.save(RandomObjectFiller.createAndFill(User.class));
@@ -175,7 +175,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     public void extractUsers() throws Exception {
         final String csvContent = "john,doe,john@email.com,42345,district,org";
         final MockMultipartFile firstFile = new MockMultipartFile("file", "users.csv",
@@ -194,7 +194,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
     }
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     public void extractUserFromCopy() throws Exception {
 
         final List<String> users = Collections.singletonList(USER_AS_STRING);
@@ -216,7 +216,7 @@ public class UserControllerIntegrationTest extends AbstractControllerIntegration
 
 
     @Test
-    @WithMockUser
+    @WithMockUser(authorities = {"ADMIN"})
     @Transactional
     public void searchUserByTerm() throws Exception {
         User firstNameUser = RandomObjectFiller.createAndFill(User.class);

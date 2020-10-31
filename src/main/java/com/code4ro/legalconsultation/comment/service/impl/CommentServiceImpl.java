@@ -24,7 +24,6 @@ import javax.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -51,7 +50,6 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDetailDto update(UUID nodeId, final UUID id, final CommentDto commentDto) {
         Comment comment = commentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        checkIfAuthorized(comment);
 
         comment.setText(commentDto.getText());
         comment = commentRepository.save(comment);
@@ -97,10 +95,7 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public void delete(final UUID id) {
-        final Comment comment = commentRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        checkIfAuthorized(comment);
-
-        commentRepository.delete(comment);
+        commentRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)
@@ -161,17 +156,6 @@ public class CommentServiceImpl implements CommentService {
 
     private Page<Comment> getAllPendingComments(final Pageable pageable) {
         return commentRepository.findAllByStatus(CommentStatus.PENDING, pageable);
-    }
-
-    private void checkIfAuthorized(Comment comment) {
-        final ApplicationUser owner = comment.getOwner();
-        final ApplicationUser currentUser = currentUserService.getCurrentApplicationUser();
-        if (currentUser.getUser().getRole() != UserRole.ADMIN && !Objects.equals(currentUser.getId(), owner.getId())) {
-            throw LegalValidationException.builder()
-                    .i18nKey("comment.Unauthorized.user")
-                    .httpStatus(HttpStatus.BAD_REQUEST)
-                    .build();
-        }
     }
 
     private boolean isOwner(final ApplicationUser currentUser) {

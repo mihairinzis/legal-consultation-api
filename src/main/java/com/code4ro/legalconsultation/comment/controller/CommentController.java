@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +48,7 @@ public class CommentController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping("/{commentId}/approve")
+    @PreAuthorize("@commentAuthorization.isSuperUser()")
     public ResponseEntity<CommentDto> approve(@PathVariable UUID commentId) {
         return ResponseEntity.ok(commentService.setStatus(commentId, APPROVED));
     }
@@ -56,6 +58,7 @@ public class CommentController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
     @GetMapping("/{commentId}/reject")
+    @PreAuthorize("@commentAuthorization.isSuperUser()")
     public ResponseEntity<CommentDto> reject(@PathVariable UUID commentId) {
         return ResponseEntity.ok(commentService.setStatus(commentId, REJECTED));
     }
